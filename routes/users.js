@@ -1,0 +1,50 @@
+const express = require('express');
+const router = express.Router();
+const db = require('../db');
+
+router.get('/', (req, res) => {
+    db.query('SELECT * FROM users', (err, results) => {
+        if (err) return res.status(500).send(err.message);
+        res.send(results);
+    });
+});
+
+router.get('/:id', (req, res) => {
+    db.query('SELECT * FROM users WHERE user_id = ?', [req.params.id], (err, results) => {
+        if (err) return res.status(500).send(err.message);
+        res.send(results);
+    });
+});
+
+router.post('/', (req, res) => {
+    const { fname, lname, email, phone, password } = req.body;
+    db.query(
+        'INSERT INTO users (fname, lname, email, phone, password) VALUES (?, ?, ?, ?, ?)',
+        [fname, lname, email, phone, password],
+        (err, results) => {
+            if (err) return res.status(500).send(err.message);
+            res.send(results);
+        }
+    );
+});
+
+router.put('/', (req, res) => {
+    const { user_id, fname, lname, email, phone, password } = req.body;
+    db.query(
+        'UPDATE users SET fname=?, lname=?, email=?, phone=?, password=? WHERE user_id=?',
+        [fname, lname, email, phone, password, user_id],
+        (err, results) => {
+            if (err) return res.status(500).send(err.message);
+            res.send(results);
+        }
+    );
+});
+
+router.delete('/', (req, res) => {
+    db.query('DELETE FROM users WHERE user_id=?', [req.body.user_id], (err, results) => {
+        if (err) return res.status(500).send(err.message);
+        res.send(results);
+    });
+});
+
+module.exports = router;

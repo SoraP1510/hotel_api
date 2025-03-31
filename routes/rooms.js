@@ -47,4 +47,11 @@ router.delete('/', (req, res) => {
     });
 });
 
+router.get('/hotel/:id', (req, res) => {
+    db.query('SELECT * FROM rooms WHERE hotel_id = ?', [req.params.id], (err, results) => {
+        if (err) return res.status(500).send(err.message);
+        res.send(results);
+    });
+});
+
 module.exports = router;

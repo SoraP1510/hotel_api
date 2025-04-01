@@ -47,4 +47,12 @@ router.delete('/', (req, res) => {
     });
 });
 
+router.delete('/:id', (req, res) => {
+    const userId = req.params.id;
+    db.query('DELETE FROM users WHERE user_id=?', [userId], (err, results) => {
+        if (err) return res.status(500).send(err.message);
+        res.send({ message: `User ${userId} deleted` });
+    });
+});
+
 module.exports = router;

@@ -16,22 +16,6 @@ router.get('/:id', (req, res) => {
     });
 });
 
-// users.js
-router.post('/login', (req, res) => {
-    const { email, password } = req.body;
-
-    db.query(
-      'SELECT * FROM users WHERE email = ? AND password = ?',
-    [email, password],
-    (err, results) => {
-        if (err) return res.status(500).send(err.message);
-        if (results.length === 0) return res.status(401).send('Invalid credentials');
-        res.send(results[0]); // ส่งข้อมูล user (รวม user_id)
-    }
-    );
-});
-
-
 router.post('/', (req, res) => {
     const { fname, lname, email, phone, password } = req.body;
     db.query(
@@ -48,18 +32,15 @@ router.post('/login', (req, res) => {
     const { email, password } = req.body;
 
     db.query(
-      'SELECT * FROM users WHERE email = ? AND password = ?',
-    [email, password],
-    (err, results) => {
-        if (err) return res.status(500).send(err.message);
+        'SELECT * FROM users WHERE email = ? AND password = ?',
+        [email, password],
+        (err, results) => {
+            if (err) return res.status(500).send(err.message);
+            if (results.length === 0) return res.status(401).send('Invalid email or password');
 
-        if (results.length === 0) {
-        return res.status(401).send('Invalid email or password');
+            // ✅ ส่ง user เดียวแบบ object พร้อม user_id
+            res.send(results[0]);
         }
-
-        // ✅ คืนค่าข้อมูลผู้ใช้ที่แท้จริง รวมถึง user_id ที่ถูกต้อง
-        res.send(results[0]);
-    }
     );
 });
 

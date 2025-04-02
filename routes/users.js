@@ -28,6 +28,25 @@ router.post('/', (req, res) => {
     );
 });
 
+router.post('/login', (req, res) => {
+    const { email, password } = req.body;
+
+    db.query(
+      'SELECT * FROM users WHERE email = ? AND password = ?',
+    [email, password],
+    (err, results) => {
+        if (err) return res.status(500).send(err.message);
+
+        if (results.length === 0) {
+        return res.status(401).send('Invalid email or password');
+        }
+
+        // ✅ คืนค่าข้อมูลผู้ใช้ที่แท้จริง รวมถึง user_id ที่ถูกต้อง
+        res.send(results[0]);
+    }
+    );
+});
+
 router.put('/', (req, res) => {
     const { user_id, fname, lname, email, phone, password } = req.body;
     db.query(

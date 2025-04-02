@@ -9,6 +9,14 @@ router.get('/', (req, res) => {
     });
 });
 
+router.get('/:id', (req, res) => {
+    db.query('SELECT * FROM users WHERE user_id = ?', [req.params.id], (err, results) => {
+        if (err) return res.status(500).send(err.message);
+        res.send(results);
+    });
+});
+
+// users.js
 router.post('/login', (req, res) => {
     const { email, password } = req.body;
 
@@ -22,6 +30,7 @@ router.post('/login', (req, res) => {
     }
     );
 });
+
 
 router.post('/', (req, res) => {
     const { fname, lname, email, phone, password } = req.body;

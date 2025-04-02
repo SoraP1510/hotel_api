@@ -9,11 +9,18 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/:id', (req, res) => {
-    db.query('SELECT * FROM users WHERE user_id = ?', [req.params.id], (err, results) => {
+router.post('/login', (req, res) => {
+    const { email, password } = req.body;
+
+    db.query(
+      'SELECT * FROM users WHERE email = ? AND password = ?',
+    [email, password],
+    (err, results) => {
         if (err) return res.status(500).send(err.message);
-        res.send(results);
-    });
+        if (results.length === 0) return res.status(401).send('Invalid credentials');
+        res.send(results[0]); // ส่งข้อมูล user (รวม user_id)
+    }
+    );
 });
 
 router.post('/', (req, res) => {

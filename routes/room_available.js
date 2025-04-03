@@ -47,4 +47,21 @@ router.delete('/', (req, res) => {
     });
 });
 
+router.get('/search', (req, res) => {
+    const { room_id, date } = req.query;
+
+    if (!room_id || !date) {
+        return res.status(400).send('Missing room_id or date');
+    }
+
+    db.query(
+        'SELECT * FROM room_available WHERE room_id = ? AND date = ?',
+        [room_id, date],
+        (err, results) => {
+            if (err) return res.status(500).send(err.message);
+            res.send(results);
+        }
+    );
+});
+
 module.exports = router;

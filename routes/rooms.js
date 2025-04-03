@@ -17,10 +17,10 @@ router.get('/:id', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-    const { room_type, room_price, max_guest, description, room_available, hotel_id, room_image } = req.body;
+    const { room_type, room_price, max_guest, description, room_available, hotel_id, room_image, room_qty} = req.body;
     db.query(
-        'INSERT INTO rooms (room_type, room_price, max_guest, description, room_available, hotel_id, room_image) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [room_type, room_price, max_guest, description, room_available, hotel_id, room_image],
+        'INSERT INTO rooms (room_type, room_price, max_guest, description, room_available, hotel_id, room_image, room_qty) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [room_type, room_price, max_guest, description, room_available, hotel_id, room_image, room_qty],
         (err, results) => {
             if (err) return res.status(500).send(err.message);
             res.send(results);
@@ -29,10 +29,10 @@ router.post('/', (req, res) => {
 });
 
 router.put('/', (req, res) => {
-    const { room_id, room_type, room_price, max_guest, description, room_available, hotel_id, room_image } = req.body;
+    const { room_id, room_type, room_price, max_guest, description, room_available, hotel_id, room_image , room_qty} = req.body;
     db.query(
-        'UPDATE rooms SET room_type=?, room_price=?, max_guest=?, description=?, room_available=?, hotel_id=?, room_image=? WHERE room_id=?',
-        [room_type, room_price, max_guest, description, room_available, hotel_id, room_image, room_id],
+        'UPDATE rooms SET room_type=?, room_price=?, max_guest=?, description=?, room_available=?, hotel_id=?, room_image=?, room_qty=? WHERE room_id=?',
+        [room_type, room_price, max_guest, description, room_available, hotel_id, room_image, room_qty, room_id],
         (err, results) => {
             if (err) return res.status(500).send(err.message);
             res.send(results);

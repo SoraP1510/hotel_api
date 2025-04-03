@@ -41,7 +41,7 @@ router.put('/', (req, res) => {
 });
 
 router.delete('/', (req, res) => {
-    db.query('DELETE FROM room_available WHERE room_available_id=?', [req.body.book_id], (err, results) => {
+    db.query('DELETE FROM room_available WHERE room_available_id=?', [req.body.room_available_id], (err, results) => {
         if (err) return res.status(500).send(err.message);
         res.send(results);
     });

@@ -2,13 +2,6 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-router.get('/', (req, res) => {
-    db.query('SELECT * FROM booking', (err, results) => {
-        if (err) return res.status(500).send(err.message);
-        res.send(results);
-    });
-});
-
 router.get('/check-availability', (req, res) => {
     const { room_id, date } = req.query;
 
@@ -39,6 +32,13 @@ router.get('/check-availability', (req, res) => {
     });
 });
 
+router.get('/', (req, res) => {
+    db.query('SELECT * FROM booking', (err, results) => {
+        if (err) return res.status(500).send(err.message);
+        res.send(results);
+    });
+});
+
 router.get('/:id', (req, res) => {
     db.query('SELECT * FROM booking WHERE book_id = ?', [req.params.id], (err, results) => {
         if (err) return res.status(500).send(err.message);
@@ -53,7 +53,17 @@ router.post('/', (req, res) => {
         [check_in, check_out, num_guest, num_rooms, total_price, hotel_id, room_id, user_id],
         (err, results) => {
             if (err) return res.status(500).send(err.message);
-            res.send(results);
+
+            // Subtract room_qty if enough rooms are available
+            db.query(
+                'UPDATE rooms SET room_qty = room_qty - ? WHERE room_id = ? AND room_qty >= ?',
+                [num_rooms, room_id, num_rooms],
+                (err2, updateResult) => {
+                    if (err2) return res.status(500).send(err2.message);
+
+                    res.send({ booking: results, updated: updateResult });
+                }
+            );
         }
     );
 });
@@ -71,12 +81,25 @@ router.put('/', (req, res) => {
 });
 
 router.delete('/', (req, res) => {
-    db.query('DELETE FROM booking WHERE book_id=?', [req.body.book_id], (err, results) => {
+    const { book_id } = req.body;
+
+    db.query('SELECT * FROM booking WHERE book_id = ?', [book_id], (err, bookingResults) => {
         if (err) return res.status(500).send(err.message);
-        res.send(results);
+        if (bookingResults.length === 0) return res.status(404).send('Booking not found');
+
+        const { room_id, num_rooms } = bookingResults[0];
+
+        db.query('DELETE FROM booking WHERE book_id = ?', [book_id], (err2, results) => {
+            if (err2) return res.status(500).send(err2.message);
+
+            // Restore the room_qty
+            db.query('UPDATE rooms SET room_qty = room_qty + ? WHERE room_id = ?', [num_rooms, room_id], (err3) => {
+                if (err3) return res.status(500).send(err3.message);
+
+                res.send(results);
+            });
+        });
     });
 });
-
-
 
 module.exports = router;

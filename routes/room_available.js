@@ -17,13 +17,29 @@ router.get('/:id', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-    const { date, available_qty, room_id } = req.body;
+    const { room_id, date, available_qty } = req.body;
+
+    // ลอง UPDATE ก่อน
     db.query(
-        'INSERT INTO room_available (date, available_qty, room_id) VALUES (?, ?, ?)',
-        [date, available_qty, room_id],
-        (err, results) => {
+        'UPDATE room_available SET available_qty = ? WHERE room_id = ? AND date = ?',
+        [available_qty, room_id, date],
+        (err, result) => {
             if (err) return res.status(500).send(err.message);
-            res.send(results);
+
+            if (result.affectedRows > 0) {
+                // มี row อยู่แล้ว → แค่ update
+                return res.send({ updated: true });
+            }
+
+            // ถ้าไม่มี row → insert ใหม่
+            db.query(
+                'INSERT INTO room_available (room_id, date, available_qty) VALUES (?, ?, ?)',
+                [room_id, date, available_qty],
+                (err2, result2) => {
+                    if (err2) return res.status(500).send(err2.message);
+                    res.send({ inserted: true });
+                }
+            );
         }
     );
 });
@@ -49,17 +65,12 @@ router.delete('/', (req, res) => {
 
 router.get('/search', (req, res) => {
     const { room_id, date } = req.query;
-
-    if (!room_id || !date) {
-        return res.status(400).send('Missing room_id or date');
-    }
-
     db.query(
         'SELECT * FROM room_available WHERE room_id = ? AND date = ?',
         [room_id, date],
         (err, results) => {
             if (err) return res.status(500).send(err.message);
-            res.send(results);
+            res.send(results); // ส่งเป็น array ([] หรือ [{}])
         }
     );
 });

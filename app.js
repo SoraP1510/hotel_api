@@ -10,12 +10,14 @@ const hotelRoutes = require('./routes/hotels');
 const roomRoutes = require('./routes/rooms');
 const bookingRoutes = require('./routes/booking');
 const reviewRoutes = require('./routes/reviews');
+const room_available = require('./routes/room_available');
 
 app.use('/users', userRoutes);
 app.use('/hotels', hotelRoutes);
 app.use('/rooms', roomRoutes);
 app.use('/booking', bookingRoutes);
 app.use('/reviews', reviewRoutes);
+app.use('/room_available', room_availableRoutes);
 
 app.get('/', (req, res) => {
     res.send('Hello world!!2');

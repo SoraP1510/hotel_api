@@ -9,6 +9,36 @@ router.get('/', (req, res) => {
     });
 });
 
+router.get('/check-availability', (req, res) => {
+    const { room_id, date } = req.query;
+
+    if (!room_id || !date) {
+        return res.status(400).send('Missing room_id or date');
+    }
+
+    const query = `
+        SELECT SUM(num_rooms) AS booked
+        FROM booking
+        WHERE room_id = ?
+        AND ? < check_out AND ? >= check_in
+    `;
+
+    db.query(query, [room_id, date, date], (err, results) => {
+        if (err) return res.status(500).send(err.message);
+
+        const booked = results[0].booked || 0;
+
+        db.query('SELECT room_qty FROM rooms WHERE room_id = ?', [room_id], (err2, roomResult) => {
+            if (err2) return res.status(500).send(err2.message);
+
+            const totalQty = roomResult[0]?.room_qty || 0;
+            const available = totalQty - booked;
+
+            res.send({ room_id, date, totalQty, booked, available });
+        });
+    });
+});
+
 router.get('/:id', (req, res) => {
     db.query('SELECT * FROM booking WHERE book_id = ?', [req.params.id], (err, results) => {
         if (err) return res.status(500).send(err.message);
@@ -47,34 +77,6 @@ router.delete('/', (req, res) => {
     });
 });
 
-router.get('/check-availability', (req, res) => {
-    const { room_id, date } = req.query;
 
-    if (!room_id || !date) {
-        return res.status(400).send('Missing room_id or date');
-    }
-
-    const query = `
-        SELECT SUM(num_rooms) AS booked
-        FROM booking
-        WHERE room_id = ?
-        AND ? < check_out AND ? >= check_in
-    `;
-
-    db.query(query, [room_id, date, date], (err, results) => {
-        if (err) return res.status(500).send(err.message);
-
-        const booked = results[0].booked || 0;
-
-        db.query('SELECT room_qty FROM rooms WHERE room_id = ?', [room_id], (err2, roomResult) => {
-            if (err2) return res.status(500).send(err2.message);
-
-            const totalQty = roomResult[0]?.room_qty || 0;
-            const available = totalQty - booked;
-
-            res.send({ room_id, date, totalQty, booked, available });
-        });
-    });
-});
 
 module.exports = router;

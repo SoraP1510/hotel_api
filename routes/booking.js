@@ -48,37 +48,24 @@ router.get('/:id', (req, res) => {
 
 router.post('/', (req, res) => {
     const { check_in, check_out, num_guest, num_rooms, total_price, hotel_id, room_id, user_id } = req.body;
+    db.query(
+        'INSERT INTO booking (check_in, check_out, num_guest, num_rooms, total_price, hotel_id, room_id, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [check_in, check_out, num_guest, num_rooms, total_price, hotel_id, room_id, user_id],
+        (err, results) => {
+            if (err) return res.status(500).send(err.message);
 
-    db.query(`
-        SELECT SUM(num_rooms) AS booked
-        FROM booking
-        WHERE room_id = ?
-        AND ? < check_out AND ? >= check_in
-    `, [room_id, check_in, check_out], (err1, results) => {
-        if (err1) return res.status(500).send(err1.message);
-
-        const booked = results[0]?.booked || 0;
-
-        db.query('SELECT room_qty FROM rooms WHERE room_id = ?', [room_id], (err2, roomResult) => {
-            if (err2) return res.status(500).send(err2.message);
-
-            const totalQty = roomResult[0]?.room_qty || 0;
-
-            if (booked + num_rooms > totalQty) {
-                return res.status(400).send('Not enough rooms available');
-            }
-
+            // Subtract room_qty if enough rooms are available
             db.query(
-                'INSERT INTO booking (check_in, check_out, num_guest, num_rooms, total_price, hotel_id, room_id, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                [check_in, check_out, num_guest, num_rooms, total_price, hotel_id, room_id, user_id],
-                (err3, results) => {
-                    if (err3) return res.status(500).send(err3.message);
+                'UPDATE rooms SET room_qty = room_qty - ? WHERE room_id = ? AND room_qty >= ?',
+                [num_rooms, room_id, num_rooms],
+                (err2, updateResult) => {
+                    if (err2) return res.status(500).send(err2.message);
 
-                    res.send({ booking: results });
+                    res.send({ booking: results, updated: updateResult });
                 }
             );
-        });
-    });
+        }
+    );
 });
 
 router.put('/', (req, res) => {

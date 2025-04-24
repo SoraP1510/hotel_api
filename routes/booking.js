@@ -53,17 +53,8 @@ router.post('/', (req, res) => {
         [check_in, check_out, num_guest, num_rooms, total_price, hotel_id, room_id, user_id],
         (err, results) => {
             if (err) return res.status(500).send(err.message);
-
-            // Subtract room_qty if enough rooms are available
-            db.query(
-                'UPDATE rooms SET room_qty = room_qty - ? WHERE room_id = ? AND room_qty >= ?',
-                [num_rooms, room_id, num_rooms],
-                (err2, updateResult) => {
-                    if (err2) return res.status(500).send(err2.message);
-
-                    res.send({ booking: results, updated: updateResult });
-                }
-            );
+            // ✅ ไม่ต้องหัก room_qty แล้ว
+            res.send({ booking: results });
         }
     );
 });
